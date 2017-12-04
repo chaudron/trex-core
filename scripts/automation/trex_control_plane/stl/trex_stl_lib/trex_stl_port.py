@@ -597,30 +597,44 @@ class Port(object):
         
         
     @owned
-    def pause (self):
+    def pause (self, stream_id_list = None):
 
         if (self.state == self.STATE_PCAP_TX) :
             return self.err("pause is not supported during PCAP TX")
 
-        if (self.state != self.STATE_TX) :
-            return self.err("port is not transmitting")
+        if stream_id_list is None:
+            if self.state != self.STATE_TX:
+                return self.err("port is not transmitting")
 
-        params = {"handler": self.handler,
-                  "port_id": self.port_id}
+            params = {"handler": self.handler,
+                      "port_id": self.port_id}
+        else:
+            params = {"handler": self.handler,
+                      "port_id": self.port_id,
+                      "stream_id_list": stream_id_list}
 
         rc  = self.transmit("pause_traffic", params)
         if rc.bad():
             return self.err(rc.err())
 
-        self.state = self.STATE_PAUSE
+        if stream_id_list is None:
+            self.state = self.STATE_PAUSE
 
         return self.ok()
 
     @owned
-    def resume (self):
+    def resume (self, stream_id_list = None):
 
-        if (self.state != self.STATE_PAUSE) :
-            return self.err("port is not in pause mode")
+        if stream_id_list is None:
+            if self.state != self.STATE_PAUSE:
+                return self.err("port is not in pause mode")
+
+            params = {"handler": self.handler,
+                      "port_id": self.port_id}
+        else:
+            params = {"handler": self.handler,
+                      "port_id": self.port_id,
+                      "stream_id_list": stream_id_list}
 
         params = {"handler": self.handler,
                   "port_id": self.port_id}
@@ -631,7 +645,8 @@ class Port(object):
         if rc.bad():
             return self.err(rc.err())
 
-        self.state = self.STATE_TX
+        if stream_id_list is None:
+            self.state = self.STATE_TX
 
         return self.ok()
 

@@ -755,23 +755,23 @@ class STLClient(object):
         return rc
 
 
-    def __resume (self, port_id_list = None, force = False):
+    def __resume (self, port_id_list = None, stream_id_list = None, force = False):
 
         port_id_list = self.__ports(port_id_list)
         rc = RC()
 
         for port_id in port_id_list:
-            rc.add(self.ports[port_id].resume())
+            rc.add(self.ports[port_id].resume(stream_id_list=stream_id_list))
 
         return rc
 
-    def __pause (self, port_id_list = None, force = False):
+    def __pause (self, port_id_list = None, stream_id_list = None, force = False):
 
         port_id_list = self.__ports(port_id_list)
         rc = RC()
 
         for port_id in port_id_list:
-            rc.add(self.ports[port_id].pause())
+            rc.add(self.ports[port_id].pause(stream_id_list=stream_id_list))
 
         return rc
 
@@ -2788,7 +2788,7 @@ class STLClient(object):
 
 
     @__api_check(True)
-    def pause (self, ports = None):
+    def pause (self, ports = None, stream_id_list = None):
         """
             Pause traffic on port(s). Works only for ports that are active, and only if all streams are in Continuous mode.
 
@@ -2802,18 +2802,28 @@ class STLClient(object):
         """
 
 
+        if stream_id_list is not None:
+            validate_type('stream_id_list', stream_id_list, (int, list))
+
+            # transform single stream
+            stream_id_list = listify(stream_id_list)
+
+            # check stream IDs
+            for i, stream_id in enumerate(stream_id_list):
+                validate_type('stream ID:{0}'.format(i), stream_id, int)
+
         ports = ports if ports is not None else self.get_transmitting_ports()
         ports = self._validate_port_list(ports)
 
         self.logger.pre_cmd("Pausing traffic on port(s) {0}:".format(ports))
-        rc = self.__pause(ports)
+        rc = self.__pause(ports, stream_id_list=stream_id_list)
         self.logger.post_cmd(rc)
 
         if not rc:
             raise STLError(rc)
 
     @__api_check(True)
-    def resume (self, ports = None):
+    def resume (self, ports = None, stream_id_list = None):
         """
             Resume traffic on port(s)
 
@@ -2827,12 +2837,23 @@ class STLClient(object):
         """
 
 
+        if stream_id_list is not None:
+            validate_type('stream_id_list', stream_id_list, (int, list))
+
+            # transform single stream
+            stream_id_list = listify(stream_id_list)
+
+            # check stream IDs
+            for i, stream_id in enumerate(stream_id_list):
+                validate_type('stream ID:{0}'.format(i), stream_id, int)
+
+
         ports = ports if ports is not None else self.get_paused_ports()
         ports = self._validate_port_list(ports)
 
 
         self.logger.pre_cmd("Resume traffic on port(s) {0}:".format(ports))
-        rc = self.__resume(ports)
+        rc = self.__resume(ports, stream_id_list=stream_id_list)
         self.logger.post_cmd(rc)
 
         if not rc:
