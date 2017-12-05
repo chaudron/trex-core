@@ -312,7 +312,7 @@ public:
     static std::string get_stream_type_str(stream_type_t stream_type);
 
 public:
-    TrexStream(uint8_t type,uint8_t port_id, uint32_t stream_id);
+    TrexStream(uint8_t type,uint8_t port_id, uint32_t stream_id) : TrexStream(type, port_id, stream_id, stream_id) {}
     virtual ~TrexStream();
 
     /* provides storage for the stream json*/
@@ -420,7 +420,7 @@ public:
 
         /* not all fields will be cloned */
 
-        TrexStream *dp = new TrexStream(m_type,m_port_id,m_stream_id);
+        TrexStream *dp = new TrexStream(m_type, m_port_id, m_stream_id, m_user_stream_id);
 
         /* on full clone we copy also VM */
         if (full) {
@@ -532,7 +532,8 @@ public:
     uint8_t       m_port_id;
     uint16_t      m_flags;
 
-    uint32_t      m_stream_id;              /* id from RPC can be anything */
+    uint32_t      m_stream_id;              /* id from RPC can be anything, will be overriden by DP ID */
+    const uint32_t m_user_stream_id;        /* backup of stream_id coming from user/CP */
     uint32_t      m_action_count;
     uint16_t      m_cache_size;
     uint32_t      m_random_seed;
@@ -599,6 +600,9 @@ public:
     }
 
  private:
+    /* additional constructor for clone() to save const m_user_stream_id */
+    TrexStream(uint8_t type, uint8_t port_id, uint32_t stream_id, uint32_t user_stream_id);
+
     /* no access to this without a lazy build method */
     TrexStreamRate m_rate;
 };

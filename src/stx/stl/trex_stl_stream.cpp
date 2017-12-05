@@ -127,9 +127,8 @@ void TrexStream::Dump(FILE *fd){
     fprintf(fd," cache_size  : %lu\n", (ulong)m_cache_size);
 }
 
- 
-TrexStream::TrexStream(uint8_t type,
-                       uint8_t port_id, uint32_t stream_id) : m_port_id(port_id), m_stream_id(stream_id) , m_rate(*this) {
+TrexStream::TrexStream(uint8_t type, uint8_t port_id, uint32_t stream_id, uint32_t user_stream_id) :
+                       m_port_id(port_id), m_stream_id(stream_id), m_user_stream_id(user_stream_id), m_rate(*this) {
 
     /* default values */
     m_type              = type;

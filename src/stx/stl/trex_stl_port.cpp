@@ -371,29 +371,40 @@ TrexStatelessPort::pause_traffic(std::vector<uint32_t> stream_id_list) {
     /* make sure all DP cores paused */
     m_dp_events.barrier();
 
-    /* change state */
-    change_state(PORT_STATE_PAUSE);
+    /* update port state only if all traffic is paused */
+    if (stream_id_list.size() == 0) {
 
-    Json::Value data;
-    data["port_id"] = m_port_id;
-    get_stateless_obj()->get_publisher()->publish_event(TrexPublisher::EVENT_PORT_PAUSED, data);
+        /* change state */
+        change_state(PORT_STATE_PAUSE);
+
+        Json::Value data;
+        data["port_id"] = m_port_id;
+        get_stateless_obj()->get_publisher()->publish_event(TrexPublisher::EVENT_PORT_PAUSED, data);
+    }
 }
 
 
 void
 TrexStatelessPort::resume_traffic(std::vector<uint32_t> stream_id_list) {
 
-    verify_state(PORT_STATE_PAUSE, "resume");
+    if (stream_id_list.size() == 0) {
+        verify_state(PORT_STATE_PAUSE, "resume");
+    }
 
     /* generate a message to all the relevant DP cores to start transmitting */
     TrexCpToDpMsgBase *resume_msg = new TrexStatelessDpResume(m_port_id, stream_id_list);
 
     send_message_to_all_dp(resume_msg, true);
-    change_state(PORT_STATE_TX);
 
-    Json::Value data;
-    data["port_id"] = m_port_id;
-    get_stateless_obj()->get_publisher()->publish_event(TrexPublisher::EVENT_PORT_RESUMED, data);
+    /* update port state only if all traffic is resumed */
+    if (stream_id_list.size() == 0) {
+
+        change_state(PORT_STATE_TX);
+
+        Json::Value data;
+        data["port_id"] = m_port_id;
+        get_stateless_obj()->get_publisher()->publish_event(TrexPublisher::EVENT_PORT_RESUMED, data);
+    }
 }
 
 

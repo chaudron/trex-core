@@ -514,14 +514,26 @@ bool TrexStatelessDpPerPort::resume_traffic(uint8_t port_id,
                                             std::vector<uint32_t> m_stream_id_list){
 
     /* we are working with continues streams so we must be in transmit mode */
-    assert(m_state == TrexStatelessDpPerPort::ppSTATE_PAUSE);
+    assert(m_stream_id_list.size() != 0 ||
+           (m_stream_id_list.size() == 0 &&
+            m_state == TrexStatelessDpPerPort::ppSTATE_PAUSE));
 
     for (auto dp_stream : m_active_nodes) {
         CGenNodeStateless * node =dp_stream.m_node;
-        assert(node->get_port_id() == port_id);
-        assert(node->is_pause() == true);
-        node->set_pause(false);
+
+        if (m_stream_id_list.size() == 0 ||
+            (m_stream_id_list.size() > 0 &&
+             std::find(m_stream_id_list.begin(),
+                       m_stream_id_list.end(),
+                       dp_stream.m_dp_stream->m_user_stream_id) != m_stream_id_list.end())) {
+
+            assert(node->get_port_id() == port_id);
+            assert(node->is_pause() == true);
+
+            node->set_pause(false);
+        }
     }
+
     m_state = TrexStatelessDpPerPort::ppSTATE_TRANSMITTING;
     return (true);
 }
@@ -551,11 +563,24 @@ bool TrexStatelessDpPerPort::pause_traffic(uint8_t port_id,
 
     for (auto dp_stream : m_active_nodes) {
         CGenNodeStateless * node =dp_stream.m_node;
-        assert(node->get_port_id() == port_id);
-        assert(node->is_pause() == false);
-        node->set_pause(true);
+
+        if (m_stream_id_list.size() == 0 ||
+            (m_stream_id_list.size() > 0 &&
+             std::find(m_stream_id_list.begin(),
+                       m_stream_id_list.end(),
+                       dp_stream.m_dp_stream->m_user_stream_id) != m_stream_id_list.end())) {
+
+            assert(node->get_port_id() == port_id);
+            assert(node->is_pause() == false);
+
+            node->set_pause(true);
+        }
     }
-    m_state = TrexStatelessDpPerPort::ppSTATE_PAUSE;
+
+    /* set state to pause only if all strems are stopped */
+    if (m_stream_id_list.size() == 0) {
+        m_state = TrexStatelessDpPerPort::ppSTATE_PAUSE;
+    }
     return (true);
 }
 
