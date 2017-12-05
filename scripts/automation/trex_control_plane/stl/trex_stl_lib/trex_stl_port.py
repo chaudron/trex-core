@@ -636,9 +636,6 @@ class Port(object):
                       "port_id": self.port_id,
                       "stream_id_list": stream_id_list}
 
-        params = {"handler": self.handler,
-                  "port_id": self.port_id}
-
         # only valid state after stop
 
         rc = self.transmit("resume_traffic", params)
