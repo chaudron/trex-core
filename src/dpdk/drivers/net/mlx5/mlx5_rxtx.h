@@ -186,7 +186,9 @@ struct mlx5_txq_data {
 	uint16_t elts_comp; /* Counter since last completion request. */
 	uint16_t mpw_comp; /* WQ index since last completion request. */
 	uint16_t cq_ci; /* Consumer index for completion queue. */
+#ifndef NDEBUG
 	uint16_t cq_pi; /* Producer index for completion queue. */
+#endif
 	uint16_t wqe_ci; /* Consumer index for work queue. */
 	uint16_t wqe_pi; /* Producer index for work queue. */
 	uint16_t elts_n:4; /* (*elts)[] length (in log2). */
@@ -616,6 +618,56 @@ static __rte_always_inline void
 mlx5_tx_dbrec(struct mlx5_txq_data *txq, volatile struct mlx5_wqe *wqe)
 {
 	mlx5_tx_dbrec_cond_wmb(txq, wqe, 1);
+}
+
+/**
+ * Count the number of contiguous single segment packets.
+ *
+ * @param pkts
+ *   Pointer to array of packets.
+ * @param pkts_n
+ *   Number of packets.
+ *
+ * @return
+ *   Number of contiguous single segment packets.
+ */
+static __rte_always_inline unsigned int
+txq_count_contig_single_seg(struct rte_mbuf **pkts, uint16_t pkts_n)
+{
+	unsigned int pos;
+
+	if (!pkts_n)
+		return 0;
+	/* Count the number of contiguous single segment packets. */
+	for (pos = 0; pos < pkts_n; ++pos)
+		if (NB_SEGS(pkts[pos]) > 1)
+			break;
+	return pos;
+}
+
+/**
+ * Count the number of contiguous multi-segment packets.
+ *
+ * @param pkts
+ *   Pointer to array of packets.
+ * @param pkts_n
+ *   Number of packets.
+ *
+ * @return
+ *   Number of contiguous multi-segment packets.
+ */
+static __rte_always_inline unsigned int
+txq_count_contig_multi_seg(struct rte_mbuf **pkts, uint16_t pkts_n)
+{
+	unsigned int pos;
+
+	if (!pkts_n)
+		return 0;
+	/* Count the number of contiguous multi-segment packets. */
+	for (pos = 0; pos < pkts_n; ++pos)
+		if (NB_SEGS(pkts[pos]) == 1)
+			break;
+	return pos;
 }
 
 #endif /* RTE_PMD_MLX5_RXTX_H_ */

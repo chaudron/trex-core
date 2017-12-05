@@ -85,8 +85,8 @@ class STLRX_Test(CStlGeneral_Test):
                 'total_pkts': 1000,
                 'rate_latency': 0.01 if self.is_vf_nics else 1,
                 'latency_9k_enable': False if self.is_vf_nics else True,
-                'latency_9k_max_average': 1000,
-                'latency_9k_max_latency': 1000,    #see latency issue trex-261
+                'latency_9k_max_average': 200,
+                'latency_9k_max_latency': 200,    
             },
 
             'net_enic': {
@@ -242,6 +242,29 @@ class STLRX_Test(CStlGeneral_Test):
         # This test that latency code can handle the situation where latency data is not contiguous in memory
         self.vm_9k_pkt = STLPktBuilder(pkt = Ether()/IP(src="16.0.0.1",dst="48.0.0.1")/UDP(dport=12,sport=1025)/('a'*8160)
                                        ,vm = vm)
+
+        # trex-505
+        #self.mlx5_defect_dpdk1711 = CTRexScenario.setup_name in ['trex19']
+        self.mlx5_defect_dpdk1711 = False
+        self.mlx5_defect_dpdk1711_2 = False
+        #if self.drv_name == 'net_mlx5':
+        #    self.mlx5_defect_dpdk1711_2 =True
+
+        # skip mlx5 VF
+        #self.mlx5_defect_dpdk1711_3 = CTRexScenario.setup_name in ['trex23']
+        self.mlx5_defect_dpdk1711_3 =False
+
+            
+
+        # the setup is like that 
+        #
+        #  p0(VF) p1(VF) p2(VF)     p3 (VF)
+        #     PF0      PF1
+        #      ---------
+        # we don't have control on the PF that change the way it count the packets +CRC so we disable the test
+        #
+        self.i40e_vf_setup_disable = CTRexScenario.setup_name in ['trex22']
+
         self.errs = []
 
 
@@ -443,6 +466,8 @@ class STLRX_Test(CStlGeneral_Test):
     # one stream on TX --> RX
     @try_few_times_on_vm
     def test_one_stream(self):
+        if self.mlx5_defect_dpdk1711:
+            self.skip('not running due to defect trex-505')
         total_pkts = self.total_pkts
         s1 = STLStream(name = 'rx',
                        packet = self.pkt,
@@ -462,10 +487,15 @@ class STLRX_Test(CStlGeneral_Test):
 
     @try_few_times_on_vm
     def test_multiple_streams(self):
+        if self.mlx5_defect_dpdk1711:
+            self.skip('not running due to defect trex-505')
         self._test_multiple_streams(False)
 
     @try_few_times_on_vm
     def test_multiple_streams_random(self):
+        if self.mlx5_defect_dpdk1711_2:
+            self.skip('defect dpdk17_11 mlx5')
+
         if self.drv_name == 'net_i40e_vf':
             self.skip('Not running on i40 vf currently')
         self._test_multiple_streams(True)
@@ -585,6 +615,9 @@ class STLRX_Test(CStlGeneral_Test):
 
     @try_few_times_on_vm
     def test_1_stream_many_iterations (self):
+        if self.mlx5_defect_dpdk1711_2:
+            self.skip('defect dpdk17_11 mlx5')
+
         total_pkts = self.total_pkts
         streams_data = [
             {'name': 'Latency, with field engine of random packet size', 'pkt': self.vm_rand_size_pkt, 'lat': True},
@@ -821,6 +854,9 @@ class STLRX_Test(CStlGeneral_Test):
 
     @try_few_times_on_vm
     def test_fcs_stream(self):
+        if self.i40e_vf_setup_disable:
+            self.skip('Skip for vf_setup')
+
         """ this test send 1 64 byte packet with latency and check that all counters are reported as 64 bytes"""
         ports = list(CTRexScenario.stl_ports_map['map'].keys())
         for lat in [True, False]:
@@ -830,6 +866,12 @@ class STLRX_Test(CStlGeneral_Test):
     # this test adds more and more latency streams and re-test with incremental
     @try_few_times_on_vm
     def test_incremental_latency_streams (self):
+        if self.mlx5_defect_dpdk1711_3:
+            self.skip('Skip for mlx5_defect_dpdk1711_3')
+
+        if self.i40e_vf_setup_disable:
+            self.skip('Skip for vf_setup')
+
         if self.is_virt_nics:
             self.skip('Skip this for virtual NICs')
 

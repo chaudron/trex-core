@@ -1,6 +1,7 @@
 #
-# Simple IMIX test (7x64B, 5x594B, 1x1518B)
+# Incorrect IMIX rates test (7x64B, 5x594B, 1x1518B)
 #
+
 - duration : 3
   generator :  
           distribution : "seq"

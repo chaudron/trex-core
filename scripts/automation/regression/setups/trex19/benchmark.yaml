@@ -41,7 +41,7 @@ test_routing_imix_64:
 
 
 test_static_routing_imix_asymmetric:
-    multiplier          : 50
+    multiplier          : 10
     cores               : 13
     bw_per_core         : 50.561
 
@@ -68,7 +68,7 @@ test_rx_check_sfr: &rx_sfr
     rx_sample_rate      : 128
     bw_per_core         : 20.871
 
-# disable due to trex-504
+#disable due to trex-504
 test_rx_check_sfr_ipv6:
     <<                  : *rx_sfr
     bw_per_core         : 19.198
