@@ -97,7 +97,8 @@ void TrexStatelessDpStop::on_node_remove(){
 
 TrexCpToDpMsgBase * TrexStatelessDpPause::clone(){
 
-    TrexStatelessDpPause *new_msg = new TrexStatelessDpPause(m_port_id);
+    TrexStatelessDpPause *new_msg = new TrexStatelessDpPause(m_port_id,
+                                                             m_stream_id_list);
     return new_msg;
 }
 
@@ -106,14 +107,15 @@ bool TrexStatelessDpPause::handle(TrexDpCore *dp_core){
     
     TrexStatelessDpCore *stl_core = dynamic_cast<TrexStatelessDpCore *>(dp_core);
     
-    stl_core->pause_traffic(m_port_id);
+    stl_core->pause_traffic(m_port_id, m_stream_id_list);
     return (true);
 }
 
 
 
 TrexCpToDpMsgBase * TrexStatelessDpResume::clone(){
-    TrexStatelessDpResume *new_msg = new TrexStatelessDpResume(m_port_id);
+    TrexStatelessDpResume *new_msg = new TrexStatelessDpResume(m_port_id,
+                                                               m_stream_id_list);
     return new_msg;
 }
 
@@ -121,7 +123,7 @@ bool TrexStatelessDpResume::handle(TrexDpCore *dp_core){
 
     TrexStatelessDpCore *stl_core = dynamic_cast<TrexStatelessDpCore *>(dp_core);
     
-    stl_core->resume_traffic(m_port_id);
+    stl_core->resume_traffic(m_port_id, m_stream_id_list);
     return (true);
 }
 

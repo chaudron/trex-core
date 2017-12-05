@@ -68,9 +68,9 @@ public:
 
     void create(CFlowGenListPerThread   *  core);
 
-    bool pause_traffic(uint8_t port_id);
+    bool pause_traffic(uint8_t port_id, std::vector<uint32_t> m_stream_id_list);
 
-    bool resume_traffic(uint8_t port_id);
+    bool resume_traffic(uint8_t port_id, std::vector<uint32_t> m_stream_id_list);
 
     bool update_traffic(uint8_t port_id, double factor);
 
@@ -146,11 +146,11 @@ public:
 
 
     /* pause the streams, work only if all are continues  */
-    void pause_traffic(uint8_t port_id);
+    void pause_traffic(uint8_t port_id, std::vector<uint32_t> stream_id_list);
 
 
 
-    void resume_traffic(uint8_t port_id);
+    void resume_traffic(uint8_t port_id, std::vector<uint32_t> stream_id_list);
 
 
     /**

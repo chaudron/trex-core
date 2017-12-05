@@ -999,11 +999,24 @@ TrexRpcCmdRemoveRXFilters::_run(const Json::Value &params, Json::Value &result) 
 trex_rpc_cmd_rc_e
 TrexRpcCmdPauseTraffic::_run(const Json::Value &params, Json::Value &result) {
 
+    std::vector<uint32_t> stream_id_list;
+    const Json::Value &stream_ids = parse_array(params, "stream_id_list",
+                                                result, Json::Value::null);
+
+    /* iterate over all attributes in the stream_id_list dict */
+    for( Json::ValueIterator itr = stream_ids.begin() ; itr != stream_ids.end() ; itr++ ) {
+        try {
+            stream_id_list.push_back(itr->asUInt());
+        } catch (const std::exception &ex) {
+            generate_execute_err(result, ex.what());
+        }
+    }
+
     uint8_t port_id = parse_port(params, result);
     TrexStatelessPort *port = get_stateless_obj()->get_port_by_id(port_id);
 
      try {
-        port->pause_traffic();
+        port->pause_traffic(stream_id_list);
     } catch (const TrexException &ex) {
         generate_execute_err(result, ex.what());
     }
@@ -1020,11 +1033,24 @@ TrexRpcCmdPauseTraffic::_run(const Json::Value &params, Json::Value &result) {
 trex_rpc_cmd_rc_e
 TrexRpcCmdResumeTraffic::_run(const Json::Value &params, Json::Value &result) {
 
+    std::vector<uint32_t> stream_id_list;
+    const Json::Value &stream_ids = parse_array(params, "stream_id_list",
+                                                result, Json::Value::null);
+
+    /* iterate over all attributes in the stream_id_list dict */
+    for( Json::ValueIterator itr = stream_ids.begin() ; itr != stream_ids.end() ; itr++ ) {
+        try {
+            stream_id_list.push_back(itr->asUInt());
+        } catch (const std::exception &ex) {
+            generate_execute_err(result, ex.what());
+        }
+    }
+
     uint8_t port_id = parse_port(params, result);
     TrexStatelessPort *port = get_stateless_obj()->get_port_by_id(port_id);
 
      try {
-        port->resume_traffic();
+        port->resume_traffic(stream_id_list);
     } catch (const TrexException &ex) {
         generate_execute_err(result, ex.what());
     }

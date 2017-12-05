@@ -350,7 +350,7 @@ TrexStatelessPort::common_port_stop_actions(bool async) {
 
 
 void
-TrexStatelessPort::pause_traffic(void) {
+TrexStatelessPort::pause_traffic(std::vector<uint32_t> stream_id_list) {
 
     verify_state(PORT_STATE_TX, "pause");
 
@@ -363,7 +363,7 @@ TrexStatelessPort::pause_traffic(void) {
     }
 
     /* send a pause message */
-    TrexCpToDpMsgBase *pause_msg = new TrexStatelessDpPause(m_port_id);
+    TrexCpToDpMsgBase *pause_msg = new TrexStatelessDpPause(m_port_id, stream_id_list);
 
     /* send message to all cores */
     send_message_to_all_dp(pause_msg, true);
@@ -381,12 +381,12 @@ TrexStatelessPort::pause_traffic(void) {
 
 
 void
-TrexStatelessPort::resume_traffic(void) {
+TrexStatelessPort::resume_traffic(std::vector<uint32_t> stream_id_list) {
 
     verify_state(PORT_STATE_PAUSE, "resume");
 
     /* generate a message to all the relevant DP cores to start transmitting */
-    TrexCpToDpMsgBase *resume_msg = new TrexStatelessDpResume(m_port_id);
+    TrexCpToDpMsgBase *resume_msg = new TrexStatelessDpResume(m_port_id, stream_id_list);
 
     send_message_to_all_dp(resume_msg, true);
     change_state(PORT_STATE_TX);

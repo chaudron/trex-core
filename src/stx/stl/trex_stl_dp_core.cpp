@@ -510,7 +510,8 @@ bool TrexStatelessDpPerPort::update_number_of_active_streams(uint32_t d){
     return (false);
 }
 
-bool TrexStatelessDpPerPort::resume_traffic(uint8_t port_id){
+bool TrexStatelessDpPerPort::resume_traffic(uint8_t port_id,
+                                            std::vector<uint32_t> m_stream_id_list){
 
     /* we are working with continues streams so we must be in transmit mode */
     assert(m_state == TrexStatelessDpPerPort::ppSTATE_PAUSE);
@@ -542,7 +543,8 @@ bool TrexStatelessDpPerPort::update_traffic(uint8_t port_id, double factor) {
     return (true);
 }
 
-bool TrexStatelessDpPerPort::pause_traffic(uint8_t port_id){
+bool TrexStatelessDpPerPort::pause_traffic(uint8_t port_id,
+                                           std::vector<uint32_t> m_stream_id_list){
 
     /* we are working with continues streams so we must be in transmit mode */
     assert(m_state == TrexStatelessDpPerPort::ppSTATE_TRANSMITTING);
@@ -1137,20 +1139,22 @@ bool TrexStatelessDpCore::are_all_ports_idle() {
 
 
 void
-TrexStatelessDpCore::resume_traffic(uint8_t port_id){
+TrexStatelessDpCore::resume_traffic(uint8_t port_id,
+                                    std::vector<uint32_t> stream_id_list) {
 
     TrexStatelessDpPerPort * lp_port = get_port_db(port_id);
 
-    lp_port->resume_traffic(port_id);
+    lp_port->resume_traffic(port_id, stream_id_list);
 }
 
 
 void
-TrexStatelessDpCore::pause_traffic(uint8_t port_id){
+TrexStatelessDpCore::pause_traffic(uint8_t port_id,
+                                   std::vector<uint32_t> stream_id_list) {
 
     TrexStatelessDpPerPort * lp_port = get_port_db(port_id);
 
-    lp_port->pause_traffic(port_id);
+    lp_port->pause_traffic(port_id, stream_id_list);
 }
 
 void 

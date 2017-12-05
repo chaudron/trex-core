@@ -93,13 +93,13 @@ public:
      * pause traffic
      * throws TrexException in case of an error
      */
-    void pause_traffic(void);
+    void pause_traffic(std::vector<uint32_t> stream_id_list);
 
     /**
      * resume traffic
      * throws TrexException in case of an error
      */
-    void resume_traffic(void);
+    void resume_traffic(std::vector<uint32_t> stream_id_list);
 
     /**
      * update current traffic on port

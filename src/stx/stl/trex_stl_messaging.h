@@ -59,7 +59,9 @@ private:
 class TrexStatelessDpPause : public TrexCpToDpMsgBase {
 public:
 
-    TrexStatelessDpPause(uint8_t port_id) : m_port_id(port_id) {
+TrexStatelessDpPause(uint8_t port_id,
+                     std::vector<uint32_t> stream_id_list) : m_port_id(port_id) {
+        m_stream_id_list = stream_id_list;
     }
 
 
@@ -70,16 +72,18 @@ public:
 
 
 private:
-    uint8_t m_port_id;
+    uint8_t               m_port_id;
+    std::vector<uint32_t> m_stream_id_list;
 };
 
 
 class TrexStatelessDpResume : public TrexCpToDpMsgBase {
 public:
 
-    TrexStatelessDpResume(uint8_t port_id) : m_port_id(port_id) {
+TrexStatelessDpResume(uint8_t port_id,
+                      std::vector<uint32_t> stream_id_list) : m_port_id(port_id) {
+        m_stream_id_list = stream_id_list;
     }
-
 
     virtual TrexCpToDpMsgBase * clone();
 
@@ -88,7 +92,8 @@ public:
 
 
 private:
-    uint8_t m_port_id;
+    uint8_t               m_port_id;
+    std::vector<uint32_t> m_stream_id_list;
 };
 
 
