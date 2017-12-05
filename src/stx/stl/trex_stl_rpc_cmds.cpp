@@ -352,7 +352,7 @@ TrexRpcCmdAddStream::_run(const Json::Value &params, Json::Value &result) {
         /* some fields */
         stream->m_enabled         = parse_bool(section, "enabled", result);
         stream->m_self_start      = parse_bool(section, "self_start", result);
-        stream->m_start_paused    = parse_bool(section, "start_paused", result);
+        stream->m_start_paused    = parse_bool(section, "start_paused", result, false); /* default is false */
         stream->m_flags           = parse_int(section, "flags", result);
         stream->m_action_count    = parse_uint32(section, "action_count", result);
         stream->m_random_seed     = parse_uint32(section, "random_seed", result,0); /* default is zero */
@@ -1030,7 +1030,7 @@ TrexRpcCmdPauseStreams::_run(const Json::Value &params, Json::Value &result) {
         TrexStream *stream = port->get_stream_by_id(stream_id);
         if (!stream) {
             std::stringstream ss;
-            ss << "pause: stream " << stream_id << " does not exists";
+            ss << "pause_streams: stream " << stream_id << " does not exists";
             generate_execute_err(result, ss.str());
         }
         stream_ids.insert(stream_id);
@@ -1085,7 +1085,7 @@ TrexRpcCmdResumeStreams::_run(const Json::Value &params, Json::Value &result) {
         TrexStream *stream = port->get_stream_by_id(stream_id);
         if (!stream) {
             std::stringstream ss;
-            ss << "resume: stream " << stream_id << " does not exists";
+            ss << "resume_streams: stream " << stream_id << " does not exists";
             generate_execute_err(result, ss.str());
         }
         stream_ids.insert(stream_id);
@@ -1165,7 +1165,7 @@ TrexRpcCmdUpdateStreams::_run(const Json::Value &params, Json::Value &result) {
         TrexStream *stream = port->get_stream_by_id(stream_id);
         if (!stream) {
             std::stringstream ss;
-            ss << "update: stream " << stream_id << " does not exists";
+            ss << "update_streams: stream " << stream_id << " does not exists";
             generate_execute_err(result, ss.str());
         }
         streams.push_back(stream);

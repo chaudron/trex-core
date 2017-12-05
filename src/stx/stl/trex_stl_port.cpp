@@ -202,8 +202,13 @@ TrexStatelessPort::start_traffic(const TrexPortMultiplier &mul, double duration,
         throw TrexException("Link state is DOWN.");
     }
 
+    /* we now need the graph - generate it if we don't have it (happens once) */
+    if (!m_graph_obj) {
+        generate_streams_graph();
+    }
+
     /* caclulate the effective factor for DP */
-    double factor = calculate_effective_factor(mul, force, m_graph_obj);
+    double factor = calculate_effective_factor(mul, force, *m_graph_obj);
 
     StreamsFeeder feeder(this);
     feeder.feed();
@@ -439,7 +444,7 @@ TrexStatelessPort::update_traffic(const TrexPortMultiplier &mul, bool force) {
     verify_state(PORT_STATE_TX | PORT_STATE_PAUSE, "update");
 
     /* generate a message to all the relevant DP cores to start transmitting */
-    double new_factor = calculate_effective_factor(mul, force, m_graph_obj);
+    double new_factor = calculate_effective_factor(mul, force, *m_graph_obj);
 
     switch (mul.m_op) {
     case TrexPortMultiplier::OP_ABS:
@@ -491,7 +496,7 @@ TrexStatelessPort::update_streams(const TrexPortMultiplier &mul, bool force, std
         const TrexStreamsGraphObj *graph_obj = graph.generate(stream_list);
 
         try {
-            new_factor = calculate_effective_factor(mul, force, graph_obj);
+            new_factor = calculate_effective_factor(mul, force, *graph_obj);
             delete graph_obj;
         } catch (const TrexException &ex) {
             delete graph_obj;
@@ -582,18 +587,12 @@ bps_to_gbps(double bps) {
 
 
 double
-TrexStatelessPort::calculate_effective_factor(const TrexPortMultiplier &mul, bool force, const TrexStreamsGraphObj *graph_obj) {
-
-    /* we now need the graph - generate it if we don't have it (happens once) */
-    if (!graph_obj) {
-        generate_streams_graph();
-        graph_obj = m_graph_obj;
-    }
+TrexStatelessPort::calculate_effective_factor(const TrexPortMultiplier &mul, bool force, const TrexStreamsGraphObj &graph_obj) {
 
     double factor = calculate_effective_factor_internal(mul, graph_obj);
 
     /* did we exceeded the max L1 line rate ? */
-    double expected_l1_rate = graph_obj->get_max_bps_l1(factor);
+    double expected_l1_rate = graph_obj.get_max_bps_l1(factor);
 
 
     /* L1 BW must be positive */
@@ -623,14 +622,14 @@ TrexStatelessPort::calculate_effective_factor(const TrexPortMultiplier &mul, boo
         }
         
         /* in any case, without force, do not return any value higher than the max factor */
-        double max_factor = graph_obj->get_factor_bps_l1(get_port_speed_bps());
+        double max_factor = graph_obj.get_factor_bps_l1(get_port_speed_bps());
         return std::min(max_factor, factor);
     }
     
 }
 
 double
-TrexStatelessPort::calculate_effective_factor_internal(const TrexPortMultiplier &mul, const TrexStreamsGraphObj *graph_obj) {
+TrexStatelessPort::calculate_effective_factor_internal(const TrexPortMultiplier &mul, const TrexStreamsGraphObj &graph_obj) {
 
     switch (mul.m_type) {
 
@@ -638,20 +637,20 @@ TrexStatelessPort::calculate_effective_factor_internal(const TrexPortMultiplier 
         return (mul.m_value);
 
     case TrexPortMultiplier::MUL_BPS:
-        return graph_obj->get_factor_bps_l2(mul.m_value);
+        return graph_obj.get_factor_bps_l2(mul.m_value);
 
     case TrexPortMultiplier::MUL_BPSL1:
-        return graph_obj->get_factor_bps_l1(mul.m_value);
+        return graph_obj.get_factor_bps_l1(mul.m_value);
 
     case TrexPortMultiplier::MUL_PPS:
-        return graph_obj->get_factor_pps(mul.m_value);
+        return graph_obj.get_factor_pps(mul.m_value);
 
     case TrexPortMultiplier::MUL_PERCENTAGE:
         /* if abs percentage is from the line speed - otherwise its from the current speed */
 
         if (mul.m_op == TrexPortMultiplier::OP_ABS) {
             double required = (mul.m_value / 100.0) * get_port_speed_bps();
-            return graph_obj->get_factor_bps_l1(required);
+            return graph_obj.get_factor_bps_l1(required);
         } else {
             return (m_factor * (mul.m_value / 100.0));
         }
